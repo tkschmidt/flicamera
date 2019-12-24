@@ -48,7 +48,7 @@ def get_libfli_sources():
     return sources
 
 
-libfli_extra_compile_args = ['-D__LIBUSB__', '-Wall', '-O2', '-fPIC', '-g']
+libfli_extra_compile_args = ['-D__LIBUSB__', '-Wall', '-O3', '-fPIC', '-g']
 libfli_extra_link_args = ['-lm', '-nostartfiles']
 
 

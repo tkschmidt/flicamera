@@ -15,21 +15,23 @@ int grab_frame(flidev_t dev, unsigned short *img, size_t n_cols, size_t n_rows) 
 
     int out;
 
-    // unsigned short *img2;
+    unsigned short *img2;
 
-    // if((img2 = (unsigned short*)malloc(n_rows * n_cols * sizeof(unsigned short))) == 0)
-    // {
-    //     return -1;
-    // }
+    if((img2 = (unsigned short*)malloc(n_rows * n_cols * sizeof(unsigned short))) == 0)
+    {
+        free(img2);
+        return -1;
+    }
 
     for(int row = 0; row < n_rows; row++)
     {
-        out = FLIGrabRow(dev, &img[row * n_cols], n_cols);
+        out = FLIGrabRow(dev, &img2[row * n_cols], n_cols);
         if (out){
+            free(img2);
             return out;
         }
     }
-
+    free(img2);
     return 0;
 
 }
