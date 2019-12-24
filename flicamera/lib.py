@@ -291,7 +291,7 @@ _API_FUNCTION_PROTOTYPES = [
                           c_char_p,
                           c_size_t]),                         # (flidev_t dev, long filter, char *name, size_t len);
     ('FLISetTDI', [flidev_t, flitdirate_t, flitdiflags_t]),   # (flidev_t dev, flitdirate_t tdi_rate, flitdiflags_t flags);
-    # ('grab_frame', [flidev_t, POINTER(c_uint16), c_size_t, c_size_t])
+    ('grab_frame', [flidev_t, POINTER(c_uint16), c_size_t, c_size_t])
 ]
 
 
@@ -690,11 +690,13 @@ class FLIDevice(object):
         n_cols = int((lr_x - ul_x) / self.hbin)
         n_rows  = int((lr_y - ul_y) / self.vbin)
 
-        array = (c_uint16 * n_rows * n_cols)
-        self.lib.grab_frame(self.dev, array, n_cols, n_rows)
+        array = (c_uint16 * (n_cols * n_rows))()
         # array = numpy.empty((n_rows, n_cols), dtype=numpy.uint16)
 
         # img_ptr   = array.ctypes.data_as(POINTER(ctypes.c_uint16))
+
+        # img_ptr = ctypes.c_uint16()
+        self.lib.grab_frame(self.dev, array, n_cols, n_rows)
 
         # for row in range(n_rows):
         #     offset = row * n_cols * ctypes.sizeof(ctypes.c_uint16)

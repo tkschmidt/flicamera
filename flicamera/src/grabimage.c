@@ -15,7 +15,9 @@ int grab_frame(flidev_t dev, unsigned short *img, size_t n_cols, size_t n_rows) 
 
     int out;
 
-    // if((img = (unsigned short*)malloc(n_rows * n_cols * sizeof(unsigned short))) == 0)
+    // unsigned short *img2;
+
+    // if((img2 = (unsigned short*)malloc(n_rows * n_cols * sizeof(unsigned short))) == 0)
     // {
     //     return -1;
     // }

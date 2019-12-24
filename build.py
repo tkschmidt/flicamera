@@ -48,7 +48,7 @@ def get_libfli_sources():
     return sources
 
 
-libfli_extra_compile_args = ['-D__LIBUSB__', '-Wall', '-O3', '-fPIC', '-g']
+libfli_extra_compile_args = ['-D__LIBUSB__', '-Wall', '-O2', '-fPIC', '-g']
 libfli_extra_link_args = ['-lm', '-nostartfiles']
 
 
@@ -73,7 +73,7 @@ else:
 
 ext_modules = Extension(
     'flicamera.libfli',
-    sources=get_libfli_sources(),
+    sources=get_libfli_sources() + ['flicamera/src/grabimage.c'],
     include_dirs=get_libfli_directories(),
     libraries=libfli_libraries,
     extra_compile_args=libfli_extra_compile_args,
