@@ -80,4 +80,4 @@ exclude_lines = [
 # Do not use poetry as a build system. We generate our own setup.py from poetry.
 [build-system]
 build-backend = "setuptools.build_meta:__legacy__"
-requires = ["setuptools"]
+requires = ["setuptools", "pybind11"]

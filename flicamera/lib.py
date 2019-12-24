@@ -8,12 +8,12 @@
 
 # Heavily copied from Craig Wm. Versek's code at http://bit.ly/2M6ESHq.
 
-import ctypes
 import os
+import ctypes
 import pathlib
 import warnings
-from ctypes import (POINTER, byref, c_char_p, c_double, c_int, c_long,
-                    c_size_t, c_ulong, c_void_p)
+from ctypes import (POINTER, byref, c_int, c_long, c_ulong, c_char_p,
+                    c_double, c_size_t, c_uint16, c_void_p)
 
 import numpy
 
@@ -291,6 +291,7 @@ _API_FUNCTION_PROTOTYPES = [
                           c_char_p,
                           c_size_t]),                         # (flidev_t dev, long filter, char *name, size_t len);
     ('FLISetTDI', [flidev_t, flitdirate_t, flitdiflags_t]),   # (flidev_t dev, flitdirate_t tdi_rate, flitdiflags_t flags);
+    # ('grab_frame', [flidev_t, POINTER(c_uint16), c_size_t, c_size_t])
 ]
 
 
@@ -689,12 +690,14 @@ class FLIDevice(object):
         n_cols = int((lr_x - ul_x) / self.hbin)
         n_rows  = int((lr_y - ul_y) / self.vbin)
 
-        array = numpy.empty((n_rows, n_cols), dtype=numpy.uint16)
+        array = (c_uint16 * n_rows * n_cols)
+        self.lib.grab_frame(self.dev, array, n_cols, n_rows)
+        # array = numpy.empty((n_rows, n_cols), dtype=numpy.uint16)
 
-        img_ptr   = array.ctypes.data_as(POINTER(ctypes.c_uint16))
+        # img_ptr   = array.ctypes.data_as(POINTER(ctypes.c_uint16))
 
-        for row in range(n_rows):
-            offset = row * n_cols * ctypes.sizeof(ctypes.c_uint16)
-            self.lib.FLIGrabRow(self.dev, byref(img_ptr.contents, offset), n_cols)
+        # for row in range(n_rows):
+        #     offset = row * n_cols * ctypes.sizeof(ctypes.c_uint16)
+        #     self.lib.FLIGrabRow(self.dev, byref(img_ptr.contents, offset), n_cols)
 
         return array

@@ -8,33 +8,38 @@
 
 # Extension build system using poetry, see https://github.com/python-poetry/poetry/issues/11.
 
+import glob
 import os
 import sys
-import glob
 
 from setuptools import Extension
 
 
-LIBFLI_PATH = os.path.join(os.path.dirname(__file__), 'cextern/libfli-1.999.1-180223')
+LIBFLI_PATH = os.path.join(os.path.dirname(__file__),
+                           'cextern/libfli-1.999.1-180223')
 
 TRAVIS = os.environ.get('TRAVIS', False)
 
 
-def get_directories():
+def get_libfli_directories():
 
     dirs = [LIBFLI_PATH]
 
     if sys.platform in ['linux', 'darwin', 'unix']:
         dirs.append(os.path.join(LIBFLI_PATH, 'unix'))
         if not TRAVIS:
-            dirs.append(os.path.join(LIBFLI_PATH, 'unix', 'libusb'))
+            dirs.append(os.path.join(LIBFLI_PATH, 'unix/libusb'))
+            # if sys.platform in ['linux', 'unix']:
+            #     dirs.append(os.path.join(LIBFLI_PATH, 'unix', 'linux'))
+            # elif sys.platform in ['darwin']:
+            #     dirs.append(os.path.join(LIBFLI_PATH, 'unix', 'osx'))
 
     return dirs
 
 
-def get_sources():
+def get_libfli_sources():
 
-    dirs = get_directories()
+    dirs = get_libfli_directories()
 
     sources = []
     for dir_ in dirs:
@@ -43,50 +48,66 @@ def get_sources():
     return sources
 
 
-extra_compile_args = ['-D__LIBUSB__', '-Wall', '-O3', '-fPIC', '-g']
-extra_link_args = ['-lm', '-nostartfiles']
+libfli_extra_compile_args = ['-D__LIBUSB__', '-Wall', '-O3', '-fPIC', '-g']
+libfli_extra_link_args = ['-lm', '-nostartfiles']
+
 
 # Do not use libusb on travis because it makes the build fail.
 # This still creates a usable library and we are mocking the device anyway.
 if TRAVIS:
-    libraries = []
+    libfli_libraries = []
 else:
-    libraries = ['usb-1.0']
+    libfli_libraries = ['usb-1.0']
 
 
-ext_modules = [
-    Extension(
-        'flicamera.libfli',
-        sources=get_sources(),
-        include_dirs=get_directories(),
-        libraries=libraries,
-        extra_compile_args=extra_compile_args,
-        extra_link_args=extra_link_args,
-        language='c',
-        optional=True),
-]
+# Compile libfli as a C library. This produces a statically linked archive
+# called libfli.a that we can then link in the pybind11 library.
+# libfli = ['fli',  # The lib prefix is added automatically.
+#           {
+#               'sources': get_libfli_sources(),
+#               'include_dirs': get_libfli_directories(),
+#               'libraries': libfli_libraries,
+#               'extra_compile_args': libfli_extra_compile_args,
+#               'extra_link_args': libfli_extra_link_args
+#           }]
+
+ext_modules = Extension(
+    'flicamera.libfli',
+    sources=get_libfli_sources(),
+    include_dirs=get_libfli_directories(),
+    libraries=libfli_libraries,
+    extra_compile_args=libfli_extra_compile_args,
+    extra_link_args=libfli_extra_link_args
+)
 
 
-# In case we wanted to compile the grabimage extension, but tests show that it
-# is not faster than the Python ctypes implementation.
+# Now prepare the compilation of the pybind11 module
 
-# We need to link grabimage against the libfli shared object but Python adds
-# a suffix. We need to figure out the output name.
-# suffix = sysconfig.get_config_var('EXT_SUFFIX')
-# libfli_lib = 'fli' + '.'.join(suffix.split('.')[:-1])
+# extra_compile_args = ['--std=c++11', '-fPIC']
+# if sys.platform == 'darwin':
+#     extra_compile_args += ['-stdlib=libc++', '-mmacosx-version-min=10.9']
 
-# cython_ext = Extension(
-#     'flicamera.utils.grabimage',
-#     ['flicamera/src/grabimage.pyx'],
-#     libraries=[libfli_lib],
-#     library_dirs=['./flicamera'],
-#     include_dirs=[numpy.get_include()],
-# )
+# ext_modules = [
+#     Extension(
+#         'flicamera/fliwrapper',
+#         ['flicamera/src/libfli_wrapper.cpp'],
+#         include_dirs=[
+#             pybind11.get_include(user=False),
+#             pybind11.get_include(user=True),
+#             'cextern/libfli-1.999.1-180223'
+#         ],
+#         libraries=['fli'],
+#         extra_compile_args=extra_compile_args,
+#         extra_link_args=['-mmacosx-version-min=10.9'],
+#         language='c++'
+#     )
+# ]
 
 
 def build(setup_kwargs):
     """To build the extensions with poetry."""
 
     setup_kwargs.update({
-        'ext_modules': ext_modules
+        # 'libraries': [libfli],
+        'ext_modules': [ext_modules]
     })
