@@ -48,9 +48,10 @@ def get_libfli_sources():
     return sources
 
 
-libfli_extra_compile_args = ['-D__LIBUSB__', '-Wall', '-O3', '-fPIC', '-g']
-libfli_extra_link_args = ['-lm', '-nostartfiles']
-
+# libfli_extra_compile_args = ['-D__LIBUSB__', '-O3', '-fPIC', '-g']
+# libfli_extra_link_args = ['-lm', '-nostartfiles']
+libfli_extra_compile_args = ['-Ofast', '-fPIC']
+libfli_extra_link_args = ['-O3', '-fPIC']
 
 # Do not use libusb on travis because it makes the build fail.
 # This still creates a usable library and we are mocking the device anyway.
@@ -73,11 +74,15 @@ else:
 
 ext_modules = Extension(
     'flicamera.libfli',
-    sources=get_libfli_sources() + ['flicamera/src/grabimage.c'],
-    include_dirs=get_libfli_directories(),
-    libraries=libfli_libraries,
-    extra_compile_args=libfli_extra_compile_args,
-    extra_link_args=libfli_extra_link_args
+    sources=['flicamera/src/grabimage.c'],
+    include_dirs=['cextern/libfli-1.999.1-180223'],
+    libraries=['fli', 'usb-1.0'],
+    library_dirs=['cextern/libfli-1.999.1-180223'],
+    extra_compile_args=["-fPIC", '-O1'],
+    # extra_compile_args=libfli_extra_compile_args,
+    extra_link_args=['-fPIC', '-O1'],
+    # define_macros=[('__LIBUSB__', '1')],
+    language='c'
 )
 
 

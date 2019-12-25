@@ -291,7 +291,7 @@ _API_FUNCTION_PROTOTYPES = [
                           c_char_p,
                           c_size_t]),                         # (flidev_t dev, long filter, char *name, size_t len);
     ('FLISetTDI', [flidev_t, flitdirate_t, flitdiflags_t]),   # (flidev_t dev, flitdirate_t tdi_rate, flitdiflags_t flags);
-    ('grab_frame', [flidev_t, POINTER(c_uint16), c_size_t, c_size_t])
+    # ('grab_frame', [flidev_t, c_size_t, c_size_t])
 ]
 
 
@@ -682,24 +682,26 @@ class FLIDevice(object):
 
         """
 
-        if self.get_exposure_time_left() > 0:
-            raise FLIError('the camera is still exposing.')
+        # if self.get_exposure_time_left() > 0:
+        #     raise FLIError('the camera is still exposing.')
 
-        (ul_x, ul_y, lr_x, lr_y) = self.area
+        # (ul_x, ul_y, lr_x, lr_y) = self.area
 
-        n_cols = int((lr_x - ul_x) / self.hbin)
-        n_rows  = int((lr_y - ul_y) / self.vbin)
+        # n_cols = int((lr_x - ul_x) / self.hbin)
+        # n_rows  = int((lr_y - ul_y) / self.vbin)
 
-        # array = (c_uint16 * (n_cols * n_rows))()
-        array = numpy.empty((n_rows, n_cols), dtype=numpy.uint16)
+        # print(n_rows, n_cols)
 
-        img_ptr   = array.ctypes.data_as(POINTER(ctypes.c_uint16))
+        # array = (c_uint16 * (1))()
+        # array = numpy.empty((n_rows, n_cols), dtype=numpy.uint16)
 
+        # img_ptr   = array.ctypes.data_as(POINTER(ctypes.c_uint16))
+        # import ipdb; ipdb.set_trace()
         # img_ptr = ctypes.c_uint16()
-        self.lib.grab_frame(self.dev, img_ptr, n_cols, n_rows)
+        self.lib.grab_frame(self.dev, 8176, 6132)
 
         # for row in range(n_rows):
         #     offset = row * n_cols * ctypes.sizeof(ctypes.c_uint16)
         #     self.lib.FLIGrabRow(self.dev, byref(img_ptr.contents, offset), n_cols)
 
-        return array
+        # return array
